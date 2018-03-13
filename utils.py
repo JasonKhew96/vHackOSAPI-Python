@@ -2,6 +2,8 @@
 import base64
 import hashlib
 import json
+import logging
+from time import sleep
 
 import requests
 
@@ -74,7 +76,7 @@ class Utils:
 
     def __init__(self):
         self.config = config()
-        self.endpoint = "https://api.vhack.cc/mobile/6/"
+        self.endpoint = "https://api.vhack.cc/mobile/10/"
         self.user_agent = self._generate_ua(
             self.config.username + self.config.password)
         self.request = requests.Session()
@@ -104,8 +106,9 @@ class Utils:
         return b64.replace("=", "")
 
     def _login(self):
+        logging.info('Logging in...')
         md5_password = self._to_md5(self.config.password)
-        json_str = {'username': self.config.username, 'password': md5_password}
+        json_str = {'lang': 'en', 'username': self.config.username, 'password': md5_password}
         json_str = json.dumps(json_str, separators=(',', ':'))
         param_user = self._to_base64(json_str)
         param_pass = self._to_md5("{}{}{}".format(json_str, json_str,
@@ -114,7 +117,7 @@ class Utils:
                                                    param_pass)
         response = self.request.get(url)
         response.encoding = 'UTF-8'
-
+        logging.debug('\n{}'.format(response.text))
         json_obj = response.json()
         self.config.access_token = json_obj['accesstoken']
         self.config.uid = json_obj['uid']
@@ -123,6 +126,7 @@ class Utils:
 
     def _generate_url(self, php, **kwargs):
         json_str = {
+            'lang': 'en',
             'uid': self.config.uid,
             'accesstoken': self.config.access_token
         }
@@ -141,12 +145,21 @@ class Utils:
             try:
                 response = self.request.get(self._generate_url(php, **kwargs))
                 response.encoding = 'UTF-8'
+                logging.debug('\n{}'.format(response.text))
                 json_obj = response.json()
+                if json_obj['result'] == '36':
+                    sleep(10)
+                    self._login()
+                    raise
                 return json_obj
             except requests.exceptions.Timeout:
-                print('Retrying {} times...'.format(i))
-            print('Please check your internet.')
-            exit(0)
+                print('Retrying {} timeout...'.format(i))
+                sleep(3)
+            except:
+                print('Retrying {} ...'.format(i))
+                sleep(3)
+        print('Please check your internet.')
+        exit()
 
 
 if __name__ == '__main__':

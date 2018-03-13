@@ -40,8 +40,8 @@ class Config:
                 'access_token': '',
                 'uid': '',
                 'user': {
-                    'username': 'test',
-                    'password': 'test'
+                    'username': '',
+                    'password': ''
                 }
             }
             ymlfile.write(yaml.dump(cfg, default_flow_style=False))
