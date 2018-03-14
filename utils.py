@@ -76,7 +76,7 @@ class Utils:
 
     def __init__(self):
         self.config = config()
-        self.endpoint = "https://api.vhack.cc/mobile/10/"
+        self.endpoint = "https://api.vhack.cc/mobile/11/"
         self.user_agent = self._generate_ua(
             self.config.username + self.config.password)
         self.request = requests.Session()
