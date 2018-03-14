@@ -2,6 +2,7 @@
 import logging
 from random import uniform
 from time import sleep
+from terminaltables import SingleTable
 
 class User:
     '''User'''
@@ -114,6 +115,7 @@ class User:
 
     def withdraw(self):
         self.network()
+        logging.info('Total connections: {}'.format(len(self.network_obj['cm'])))
         sleep(uniform(1.0, 2.0))
         for targetdetail in self.network_obj['cm']:
             if targetdetail['brute'] == '1':
@@ -143,7 +145,9 @@ class User:
         while True:
             apps = self.store_obj['apps']
             apps = [x for x in apps if x['price'] != '0']
-            apps = sorted(apps, key=lambda k: int(k['price']))
+            apps = [x for x in apps if x['level'] != '0']
+            apps = [x for x in apps if x['maxlvl'] != '1']
+            apps = sorted(apps, key=lambda k: int(k['level']))
 
             total_running = 0
             for app in apps:
@@ -160,6 +164,23 @@ class User:
                 logging.info('Upgrading {}'.format(app['appid']))
                 sleep(uniform(1.0, 2.0))
 
+    def printuserinfo(self):
+        data = []
+        data.append(['Exploits', self.update_obj['exploits'], 'Level', self.update_obj['level']])
+        data.append(['Netcoins', self.update_obj['netcoins'], 'Money', self.update_obj['money']])
+        table = SingleTable(data)
+        table.title = 'User info'
+        table.inner_heading_row_border = False
+        print(table.table)
+
+        data = []
+        data.append(['Firewall', self.update_obj['fw'], 'Antivirus', self.update_obj['av']])
+        data.append(['SDK', self.update_obj['sdk'], 'BruteF', self.update_obj['brute']])
+        data.append(['Spam', self.update_obj['spam']])
+        table = SingleTable(data)
+        table.title = 'Software info'
+        table.inner_heading_row_border = False
+        print(table.table)
 
 
 
