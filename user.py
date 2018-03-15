@@ -76,10 +76,10 @@ class User:
         sleep(uniform(1.0, 2.0))
         for targetdetail in self.network_obj['ips']:
             targetip = targetdetail['ip']
-            sdk_level = int(self.update_obj['sdk'])
+            brute_level = int(self.update_obj['brute'])
             target_fw = int(targetdetail['fw'])
             exploits_num = int(self.network_obj['exploits'])
-            if (sdk_level > target_fw) and (sdk_level - target_fw < 20) and (exploits_num > 0):
+            if (brute_level > target_fw) and (brute_level - target_fw < 20) and (exploits_num > 0):
                 logging.info('Target fw {}'.format(target_fw))
                 self.exploit(target=targetip)
                 logging.info('Exploit {}'.format(targetip))
@@ -129,9 +129,10 @@ class User:
                     sleep(uniform(1.0, 2.0))
                     if self.remotebanking_obj['withdraw'] == '0' and self.remotebanking_obj['remotemoney'] != '0':
                         self.wdremotebanking(target=targetip)
-                        money = self.remotebanking_obj['remotemoney']
-                        username = self.remotebanking_obj['remoteusername']
-                        logging.info('Withdraw {} from {}'.format(money, username))
+                        if self.remotebanking_obj['result'] == '0':
+                            money = self.remotebanking_obj['remotemoney']
+                            username = self.remotebanking_obj['remoteusername']
+                            logging.info('Withdraw {} from {}'.format(money, username))
                         sleep(uniform(1.0, 2.0))
                     self.remotelog(target=targetip)
                     sleep(uniform(1.0, 2.0))

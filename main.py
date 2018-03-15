@@ -7,8 +7,8 @@ from distutils.version import StrictVersion
 import requests
 import logging
 
-VERSION = '0.0.0.2' # major.minor.build.revision
-APP_VER = '1.38'
+VERSION = '0.0.0.3' # major.minor.build.revision
+APP_VER = '1.39'
 
 def getappver():
     url = 'https://play.google.com/store/apps/details?id=cc.vhack.vhackxtmobile&hl=en'
