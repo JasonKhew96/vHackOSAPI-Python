@@ -18,7 +18,7 @@ class User:
 
     def init_update(self):
         self.update()
-        sleep(uniform(0.5, 2.0))
+        sleep(uniform(0.5, 1.5))
         self.update()
 
     def update(self, notify=True):
@@ -26,7 +26,7 @@ class User:
             self.update_obj = self.utils.call('update.php', lastread='0', notify='1')
         else:
             self.update_obj = self.utils.call('update.php', lastread='0', notify='0')
-        sleep(uniform(0.5, 2.0))
+        sleep(uniform(0.5, 1.5))
 
     def network(self):
         self.network_obj = self.utils.call('network.php')
@@ -92,7 +92,7 @@ class User:
     def attack(self):
         self.network()
         exploits_num = int(self.network_obj['exploits'])
-        sleep(uniform(0.5, 2.0))
+        sleep(uniform(0.5, 1.5))
         for targetdetail in self.network_obj['ips']:
             targetip = targetdetail['ip']
             brute_level = int(self.update_obj['brute'])
@@ -101,27 +101,30 @@ class User:
                 logger.info('Target fw {}'.format(target_fw))
                 self.exploit(target=targetip)
                 logger.info('Exploit {}'.format(targetip))
-                sleep(uniform(0.5, 2.0))
+                sleep(uniform(0.5, 1.5))
                 if self.exploit_obj['result'] == '0':
                     exploits_num = int(self.exploit_obj['exploits'])
                     self.remote(target=targetip)
-                    sleep(uniform(0.5, 2.0))
+                    sleep(uniform(0.5, 1.5))
                     if self.remote_obj['result'] == '0':
                         self.remotebanking(target=targetip)
                         logger.info('Remote banking {}'.format(targetip))
-                        sleep(uniform(0.5, 2.0))
+                        sleep(uniform(0.5, 1.5))
                         if self.remotebanking_obj['result'] == '0' and self.remotebanking_obj['open'] == '0':
                             self.startbruteforce(target=targetip)
-                            exploits_num -= 1
-                            logger.info('Start brute force {}'.format(targetip))
-                            sleep(uniform(0.5, 2.0))
+                            if self.startbruteforce_obj['result'] == '0':
+                                exploits_num -= 1
+                                logger.info('Start brute force {}'.format(targetip))
+                            else:
+                                logger.error('Brute force error {}'.format(targetip))
+                            sleep(uniform(0.5, 1.5))
                         else:
                             logger.error('Remote banking failed...')
                         self.remotelog(target=targetip)
-                        sleep(uniform(0.5, 2.0))
+                        sleep(uniform(0.5, 1.5))
                         self.clearremotelog(target=targetip)
                         logger.info('Cleared remote log {}'.format(targetip))
-                        sleep(uniform(0.5, 2.0))
+                        sleep(uniform(0.5, 1.5))
                     else:
                         logger.error('Remote failed...')
                 elif self.exploit_obj['result'] == '3':
@@ -132,19 +135,19 @@ class User:
                 break
 
     def withdraw(self):
-        self.network()
-        logger.info('Total connections: {}'.format(len(self.network_obj['cm'])))
-        sleep(uniform(0.5, 2.0))
-        for targetdetail in self.network_obj['cm']:
-            if targetdetail['brute'] == '1':
-                targetip = targetdetail['ip']
+        self.tasks()
+        logger.info('Total connections: {}'.format(len(self.tasks_obj['brutes'])))
+        sleep(uniform(0.5, 1.5))
+        for targetdetail in self.tasks_obj['brutes']:
+            if targetdetail['result'] == '1':
+                targetip = targetdetail['user_ip']
                 self.remote(target=targetip)
                 logger.info('Remote {}'.format(targetip))
-                sleep(uniform(0.5, 2.0))
+                sleep(uniform(0.5, 1.5))
                 if self.remote_obj['result'] == '0':
                     self.remotebanking(target=targetip)
                     logger.info('Remote banking {}'.format(targetip))
-                    sleep(uniform(0.5, 2.0))
+                    sleep(uniform(0.5, 1.5))
                     if self.remotebanking_obj['withdraw'] == '0' and self.remotebanking_obj['remotemoney'] != '0':
                         self.wdremotebanking(target=targetip)
                         if self.remotebanking_obj['result'] == '0':
@@ -153,16 +156,18 @@ class User:
                             username = self.remotebanking_obj['remoteusername']
                             logger.info('Withdraw {} from {}'.format(money, username))
                             self.utils.insert_db(targetip, level, username, money)
-                        sleep(uniform(0.5, 2.0))
+                        sleep(uniform(0.5, 1.5))
                     self.remotelog(target=targetip)
-                    sleep(uniform(0.5, 2.0))
+                    sleep(uniform(0.5, 1.5))
                     self.clearremotelog(target=targetip)
                     logger.info('Cleared remote log {}'.format(targetip))
-                    sleep(uniform(0.5, 2.0))
+                    sleep(uniform(0.5, 1.5))
+            # else:
+                # logger.error('Remote {} {} not ready'.format(targetdetail['ip'], targetdetail['brute']))
 
     def upgradesingle(self):
         self.store()
-        sleep(uniform(0.5, 2.0))
+        sleep(uniform(0.5, 1.5))
         while True:
             apps = self.store_obj['apps']
             apps = [x for x in apps if x['price'] != '0']
@@ -183,25 +188,25 @@ class User:
             if int(app['price']) < int(self.store_obj['money']):
                 self.upgradestore(appcode=app['appid'])
                 logger.info('Upgrading {}'.format(app['appid']))
-                sleep(uniform(0.5, 2.0))
+                sleep(uniform(0.5, 1.5))
 
     def collectmining(self):
         self.mining()
         running = self.mining_obj['running']
-        sleep(uniform(0.5, 2.0))
+        sleep(uniform(0.5, 1.5))
         if running == '0':
             self.mining(action='100')
             logger.info('Started netcoins miner.')
-            sleep(uniform(0.5, 2.0))
+            sleep(uniform(0.5, 1.5))
         elif running == '2':
             mined = int(self.mining_obj['mined'])
             self.mining(action='200')
-            sleep(uniform(0.5, 2.0))
+            sleep(uniform(0.5, 1.5))
             result = self.mining_obj['result']
             if result == '0':
                 logger.info('Collected {} netcoins'.format(mined))
                 self.mining(action='100')
-                sleep(uniform(0.5, 2.0))
+                sleep(uniform(0.5, 1.5))
                 logger.info('Started netcoins miner.')
             else:
                 logger.error('Collect netcoins failed.')

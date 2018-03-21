@@ -9,7 +9,7 @@ from lxml import html
 
 from utils import Utils
 
-VERSION = '0.0.0.4'  # major.minor.build.revision
+VERSION = '0.0.0.5'  # major.minor.build.revision
 APP_VER = '1.39'
 
 

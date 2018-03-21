@@ -93,6 +93,7 @@ class Utils:
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip'
         }
+        self.request.timeout = 20
         if self.config.access_token == '' or self.config.uid == '':
             self._login()
 
@@ -175,7 +176,7 @@ class Utils:
             try:
                 response = self.request.get(self._generate_url(php, **kwargs))
                 response.encoding = 'UTF-8'
-                logging.debug('\n{}'.format(response.text))
+                logging.debug('\n{}\n'.format(response.text))
                 json_obj = response.json()
                 if json_obj['result'] == '36':
                     raise CredentialsChangedException
@@ -188,6 +189,8 @@ class Utils:
                 sleep(10)
                 self._login()
                 sleep(3)
+            except Exception as e:
+                logger.error(e)
         logger.error('Please check your internet.')
         exit()
 
