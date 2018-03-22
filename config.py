@@ -1,13 +1,20 @@
-'''config.py'''
+"""Config management"""
+import logging
+
 import yaml
 
 
 class Config:
-    '''Config class'''
+    """Config class
 
-    def __init__(self):
+    :param filename: A string, file name of config file
+    """
+
+    def __init__(self, filename):
+        self.config_file = filename
+        self.logger = logging.getLogger(__name__)
         try:
-            with open("config.yml", 'r') as ymlfile:
+            with open(self.config_file, "r") as ymlfile:
                 cfg = yaml.load(ymlfile)
         except FileNotFoundError:
             self.create_config()
@@ -20,8 +27,8 @@ class Config:
             self.create_config()
 
     def save_config(self):
-        '''save_config'''
-        with open("config.yml", 'w') as ymlfile:
+        """Save config to configuration file."""
+        with open(self.config_file, "w") as ymlfile:
             cfg = {
                 'access_token': self.access_token,
                 'uid': self.uid,
@@ -32,10 +39,9 @@ class Config:
             }
             ymlfile.write(yaml.dump(cfg, default_flow_style=False))
 
-    @staticmethod
-    def create_config():
-        '''create_config'''
-        with open("config.yml", 'w') as ymlfile:
+    def create_config(self):
+        """Create a default configuration file."""
+        with open(self.config_file, 'w') as ymlfile:
             cfg = {
                 'access_token': '',
                 'uid': '',
@@ -45,8 +51,7 @@ class Config:
                 }
             }
             ymlfile.write(yaml.dump(cfg, default_flow_style=False))
+            self.logger.info(
+                "Config file created, please edit your credentials in %s",
+                self.config_file)
             exit()
-
-
-if __name__ == '__main__':
-    CONFIG = Config()

@@ -1,18 +1,6 @@
-'''Utils.py'''
+"""Utility function"""
 import base64
 import hashlib
-import json
-import logging
-import os
-import sqlite3
-from exceptions import CredentialsChangedException
-from time import sleep, time
-
-import requests
-
-from config import Config
-
-logger = logging.getLogger(__name__)
 
 USER_AGENT = [
     'Dalvik/2.1.0 (Linux; U; Android 5.0.1; GT-I9508V Build/LRX22C)',
@@ -76,124 +64,33 @@ USER_AGENT = [
 ]
 
 
-class Utils:
-    '''Utils Class'''
+def generate_ua(identifier):
+    """Return a user agent based on identifier.
 
-    def __init__(self):
-        self.config = Config()
-        if not os.path.isfile('vhackos.db'):
-            self._create_db()
-        self.endpoint = "https://api.vhack.cc/mobile/11/"
-        self.user_agent = self._generate_ua(
-            self.config.username + self.config.password)
-        self.request = requests.Session()
-        self.request.headers = {
-            'User-Agent': self.user_agent,
-            'Host': 'api.vhack.cc',
-            'Connection': 'Keep-Alive',
-            'Accept-Encoding': 'gzip'
-        }
-        self.request.timeout = 20
-        if self.config.access_token == '' or self.config.uid == '':
-            self._login()
-
-    def _create_db(self):
-        conn = sqlite3.connect('vhackos.db')
-        c = conn.cursor()
-        c.execute(
-            "CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, ip TEXT, level TEXT, username TEXT, moneys INT, time INT)"
-        )
-        conn.commit()
-        conn.close()
-
-    def insert_db(self, ip, level, username, moneys):
-        conn = sqlite3.connect('vhackos.db')
-        c = conn.cursor()
-        mtime = int(round(time()))
-        c.execute(
-            "INSERT INTO users(ip, level, username, moneys, time) VALUES ('{}', '{}', '{}', '{}', '{}')".
-            format(ip, level, username, moneys, mtime))
-        conn.commit()
-        conn.close()
-
-    def _generate_ua(self, identifier):
-        pick = int(self._to_md5(identifier), 16)
-        user_agents = tuple(USER_AGENT)
-        return user_agents[pick % len(user_agents)]
-
-    @staticmethod
-    def _to_md5(txt):
-        md5 = hashlib.md5()
-        md5.update(txt.encode('utf-8'))
-        return md5.hexdigest()
-
-    @staticmethod
-    def _to_base64(string):
-        b64 = base64.urlsafe_b64encode(string.encode('UTF-8')).decode('ascii')
-        return b64.replace("=", "")
-
-    def _login(self):
-        logging.info('Logging in...')
-        md5_password = self._to_md5(self.config.password)
-        json_str = {
-            'lang': 'en',
-            'username': self.config.username,
-            'password': md5_password
-        }
-        json_str = json.dumps(json_str, separators=(',', ':'))
-        param_user = self._to_base64(json_str)
-        param_pass = self._to_md5("{}{}{}".format(json_str, json_str,
-                                                  self._to_md5(json_str)))
-        url = "{}login.php?user={}&pass={}".format(self.endpoint, param_user,
-                                                   param_pass)
-        response = self.request.get(url)
-        response.encoding = 'UTF-8'
-        logging.debug('\n{}'.format(response.text))
-        json_obj = response.json()
-        self.config.access_token = json_obj['accesstoken']
-        self.config.uid = json_obj['uid']
-        self.config.save_config()
-        return True
-
-    def _generate_url(self, php, **kwargs):
-        json_str = {
-            'lang': 'en',
-            'uid': self.config.uid,
-            'accesstoken': self.config.access_token
-        }
-        json_str.update(kwargs)
-        json_str = json.dumps(json_str, separators=(',', ':'))
-        param_user = self._to_base64(json_str)
-        param_pass = self._to_md5("{}{}{}".format(json_str, json_str,
-                                                  self._to_md5(json_str)))
-
-        return "{}{}?user={}&pass={}".format(self.endpoint, php, param_user,
-                                             param_pass)
-
-    def call(self, php, **kwargs):
-        '''call'''
-        for i in range(1, 10):
-            try:
-                response = self.request.get(self._generate_url(php, **kwargs))
-                response.encoding = 'UTF-8'
-                logging.debug('\n{}\n'.format(response.text))
-                json_obj = response.json()
-                if json_obj['result'] == '36':
-                    raise CredentialsChangedException
-                return json_obj
-            except requests.exceptions.Timeout:
-                logger.error('Retrying {} timeout...'.format(i))
-                sleep(3)
-            except CredentialsChangedException:
-                logger.error('Credentials changed, re-login...')
-                sleep(10)
-                self._login()
-                sleep(3)
-            except Exception as e:
-                logger.error(e)
-        logger.error('Please check your internet.')
-        exit()
+    :param identifier: A string, identifier to generate user agent.
+    :rtype: A string, user agent.
+    """
+    pick = int(to_md5(identifier), 16)
+    user_agents = tuple(USER_AGENT)
+    return user_agents[pick % len(user_agents)]
 
 
-if __name__ == '__main__':
-    UTILS = Utils()
+def to_md5(text):
+    """Return a md5 string.
+
+    :param text: A string, to be hash to md5.
+    :rtype: A string, md5 hash string.
+    """
+    md5 = hashlib.md5()
+    md5.update(text.encode('utf-8'))
+    return md5.hexdigest()
+
+
+def to_base64(text):
+    """Return base64 encoded string and remove ``=`` symbol.
+
+    :param text: A string, to be encode to base64.
+    :rtype: A string, base64 encoded string.
+    """
+    b64 = base64.urlsafe_b64encode(text.encode('UTF-8')).decode('ascii')
+    return b64.replace("=", "")
