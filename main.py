@@ -10,7 +10,7 @@ from lxml import html
 from network import Network
 from vhackosapi import VHackOSAPI
 
-VERSION = "0.0.0.8"  # major.minor.build.revision
+VERSION = "0.0.0.9"  # major.minor.build.revision
 APP_VER = "1.40"
 
 
@@ -20,9 +20,9 @@ def getappver():
     response = requests.get(url, headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3378.0 Safari/537.36'})
     html_content = html.fromstring(response.content)
     try:
-        version = html_content.xpath('//span[@class="htlgb"]')[3].text.strip()
+        version = html_content.xpath('//div[@itemprop="softwareVersion"]')[0].text.strip()
     except IndexError:
-        print("SOMETHING'S HAPPENING!!!")
+        print("Get version error...")
         exit()
     return version
 

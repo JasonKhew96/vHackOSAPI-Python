@@ -95,7 +95,8 @@ class Network:
         self.config.save_config()
         return True
 
-    def generate_url(self, php, **kwargs):
+    @staticmethod
+    def generate_url(php, lang, uid, accesstoken, **kwargs):
         """Generate url and parameters.
 
         :param php: A string, php endpoint.
@@ -103,9 +104,9 @@ class Network:
         :rtype: A string, full url.
         """
         json_str = {
-            'lang': 'en',
-            'uid': self.config.uid,
-            'accesstoken': self.config.access_token
+            'lang': lang,
+            'uid': uid,
+            'accesstoken': accesstoken
         }
         json_str.update(kwargs)
         json_str = json.dumps(json_str, separators=(',', ':'))
@@ -125,7 +126,7 @@ class Network:
         """
         for i in range(1, 10):
             try:
-                response = self.request.get(self.generate_url(php, **kwargs))
+                response = self.request.get(self.generate_url(php=php, lang='en', uid=self.config.uid, accesstoken=self.config.access_token, **kwargs))
                 response.encoding = 'UTF-8'
                 logging.debug('\n%s\n', response.text)
                 json_obj = response.json()
