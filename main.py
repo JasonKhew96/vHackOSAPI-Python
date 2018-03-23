@@ -10,20 +10,20 @@ from lxml import html
 from network import Network
 from vhackosapi import VHackOSAPI
 
-VERSION = "0.0.0.6"  # major.minor.build.revision
-APP_VER = "1.39"
+VERSION = "0.0.0.7"  # major.minor.build.revision
+APP_VER = "1.40"
 
 
 def getappver():
     """Get vHackOS version from play store."""
     url = 'https://play.google.com/store/apps/details?id=cc.vhack.vhackxtmobile&hl=en'
-    response = requests.get(url)
+    response = requests.get(url, headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3378.0 Safari/537.36'})
     html_content = html.fromstring(response.content)
     try:
-        version = html_content.xpath('//div[@itemprop="softwareVersion"]')[
-            0].text.strip()
+        version = html_content.xpath('//span[@class="htlgb"]')[3].text.strip()
     except IndexError:
-        return getappver()
+        print("SOMETHING'S HAPPENING!!!")
+        exit()
     return version
 
 

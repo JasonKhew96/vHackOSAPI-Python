@@ -67,14 +67,14 @@ class VHackOSAPI:
         self.remotebanking_obj = self.utils.call(
             'remotebanking.php', target=target)
 
-    def wdremotebanking(self, target, action="100"):
+    def wdremotebanking(self, target, amount, action="100"):
         """Withdraw money from target ip address.
 
         :param target: A string, ip address.
         :param action: A string, 100 means withdraw.
         """
         self.wdremotebanking_obj = self.utils.call(
-            'remotebanking.php', target=target, action=action)
+            'remotebanking.php', target=target, action=action, amount=amount)
 
     def startbruteforce(self, target):
         """Bruteforce a target ip address.
@@ -209,8 +209,9 @@ class VHackOSAPI:
                     self.logger.info('Remote banking %s', targetip)
                     sleep(uniform(0.5, 1.5))
                     if (self.remotebanking_obj['withdraw'] == '0'
-                            and self.remotebanking_obj['remotemoney'] != '0'):
-                        self.wdremotebanking(target=targetip)
+                            and self.remotebanking_obj['remotemoney'] != '0') and self.remotebanking_obj['aatt'] != '0':
+                            # dafak is that? cooldown?
+                        self.wdremotebanking(target=targetip, amount=self.remotebanking_obj['remotemoney'])
                         if self.remotebanking_obj['result'] == '0':
                             level = int(self.remote_obj['remoteLevel'])
                             money = int(self.remotebanking_obj['remotemoney'])
@@ -224,6 +225,8 @@ class VHackOSAPI:
                     self.clearremotelog(target=targetip)
                     self.logger.info('Cleared remote log %s', targetip)
                     sleep(uniform(0.5, 1.5))
+                # else:
+                #     self.logger.error(self.remote_obj['result'])
 
     def upgradesingle(self):
         """Upgrade single app loop"""
