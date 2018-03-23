@@ -170,19 +170,18 @@ class VHackOSAPI:
                             self.startbruteforce(target=targetip)
                             if self.startbruteforce_obj['result'] == '0':
                                 exploits_num -= 1
-                                self.logger.info(
-                                    'Start brute force %s', targetip)
+                                self.logger.info('Start brute force %s',
+                                                 targetip)
                             else:
-                                self.logger.error(
-                                    'Brute force error %s', targetip)
+                                self.logger.error('Brute force error %s',
+                                                  targetip)
                             sleep(uniform(0.5, 1.5))
                         else:
                             self.logger.error('Remote banking failed...')
                         self.remotelog(target=targetip)
                         sleep(uniform(0.5, 1.5))
                         self.clearremotelog(target=targetip)
-                        self.logger.info(
-                            'Cleared remote log %s', targetip)
+                        self.logger.info('Cleared remote log %s', targetip)
                         sleep(uniform(0.5, 1.5))
                     else:
                         self.logger.error('Remote failed...')
@@ -196,7 +195,8 @@ class VHackOSAPI:
     def withdraw(self):
         """Withdraw loop"""
         self.tasks()
-        self.logger.info('Total connections: %i', len(self.tasks_obj['brutes']))
+        self.logger.info('Total connections: %i',
+                         len(self.tasks_obj['brutes']))
         sleep(uniform(0.5, 1.5))
         for targetdetail in self.tasks_obj['brutes']:
             if targetdetail['result'] == '1':
@@ -209,14 +209,18 @@ class VHackOSAPI:
                     self.logger.info('Remote banking %s', targetip)
                     sleep(uniform(0.5, 1.5))
                     if (self.remotebanking_obj['withdraw'] == '0'
-                            and self.remotebanking_obj['remotemoney'] != '0') and self.remotebanking_obj['aatt'] != '0':
-                            # dafak is that? cooldown?
-                        self.wdremotebanking(target=targetip, amount=self.remotebanking_obj['remotemoney'])
+                            and self.remotebanking_obj['remotemoney'] != '0'
+                            and self.remotebanking_obj['aatt'] == '0'):
+                        # dafak is that? cooldown?
+                        self.wdremotebanking(
+                            target=targetip,
+                            amount=self.remotebanking_obj['remotemoney'])
                         if self.remotebanking_obj['result'] == '0':
                             level = int(self.remote_obj['remoteLevel'])
                             money = int(self.remotebanking_obj['remotemoney'])
                             username = self.remotebanking_obj['remoteusername']
-                            self.logger.info('Withdraw %i from %s', money, username)
+                            self.logger.info('Withdraw %i from %s', money,
+                                             username)
                             self.utils.insert_db(targetip, level, username,
                                                  money)
                         sleep(uniform(0.5, 1.5))
@@ -280,11 +284,11 @@ class VHackOSAPI:
 
     def printuserinfo(self):
         """Print player details"""
+        exp = int(self.update_obj["exp"]) / int(self.update_obj["expreq"])
+        exp = round((exp * 100), 2)
+        level = "{} ({}%)".format(self.update_obj['level'], exp)
         data = []
-        data.append([
-            'Exploits', self.update_obj['exploits'], 'Level',
-            self.update_obj['level']
-        ])
+        data.append(['Exploits', self.update_obj['exploits'], 'Level', level])
         data.append([
             'Netcoins', self.update_obj['netcoins'], 'Money',
             self.update_obj['money']
