@@ -10,8 +10,8 @@ from lxml import html
 from network import Network
 from vhackosapi import VHackOSAPI
 
-VERSION = "0.0.0.9"  # major.minor.build.revision
-APP_VER = "1.40"
+VERSION = "0.0.0.10"  # major.minor.build.revision
+APP_VER = "1.41"
 
 
 def getappver():
@@ -22,13 +22,14 @@ def getappver():
     try:
         version = html_content.xpath('//div[@itemprop="softwareVersion"]')[0].text.strip()
     except IndexError:
-        print("Get version error...")
+        logger.error("Get version error...")
         exit()
     return version
 
 
 def mainloop():
     """Main bot loop."""
+    global logger
     network = Network()
     api = VHackOSAPI(network)
     cd_timer = 0
@@ -36,25 +37,26 @@ def mainloop():
         api.update()
         api.attack()
         api.update()
-        if time() - cd_timer > 600:  # 10 minutes
+        if time() - cd_timer > 300:  # 5 minutes
+            cd_timer = time()
             api.withdraw()
             api.update()
             api.collectmining()
             api.update()
-            cd_timer = time()
         api.upgradesingle()
         api.update()
         api.printuserinfo()
         mseconds = uniform(60.0, 600.0)
-        logging.info('Sleep %i second(s)', round(mseconds))
+        logger.info('Sleep %i second(s)', round(mseconds))
         sleep(mseconds)
 
 
 def main():
     """Main entry point."""
     try:
+        global logger
         log_format = "[%(asctime)s][%(module)s][%(funcName)8s][%(levelname)8s] %(message)s"
-        # FORMATTER = logging.Formatter(FORMAT, "%Y-%m-%d %H:%M:%s")
+        # formatter = logging.Formatter(log_format)
 
         logging.basicConfig(format=log_format, level=logging.INFO)
         logger = logging.getLogger(__name__)
@@ -63,11 +65,6 @@ def main():
         # fh.setFormatter(formatter)
         # logger.addHandler(fh)
 
-        # logger.debug('debug message')
-        # logger.info('info message')
-        # logger.warn('warn message')
-        # logger.error('error message')
-        # logger.critical('critical message')
         logger.info('vHackOS-Bot: %s', VERSION)
 
         newappver = getappver()
@@ -81,7 +78,7 @@ def main():
         sleep(10)
         mainloop()
     except KeyboardInterrupt:
-        logging.info('Keyboard Interrupted')
+        logger.info('Keyboard Interrupted')
         exit()
 
 

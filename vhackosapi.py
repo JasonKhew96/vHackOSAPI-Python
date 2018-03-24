@@ -152,7 +152,7 @@ class VHackOSAPI:
             targetip = targetdetail['ip']
             brute_level = int(self.update_obj['brute'])
             target_fw = int(targetdetail['fw'])
-            if (brute_level > target_fw) and (exploits_num > 0):
+            if (brute_level > target_fw) and (exploits_num > 0) and (targetdetail['open'] == "0"):
                 self.logger.info('Target fw %i', target_fw)
                 self.exploit(target=targetip)
                 self.logger.info('Exploit %s', targetip)
