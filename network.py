@@ -46,7 +46,7 @@ class Network:
             ip TEXT,
             level TEXT,
             username TEXT,
-            moneys INT,
+            money INT,
             time INT
             )""")
         conn.commit()
@@ -65,8 +65,8 @@ class Network:
         cursor = conn.cursor()
         mtime = int(round(time()))
         cursor.execute("""INSERT INTO users(
-            ip, level, username, moneys, time) VALUES (
-            '%s', '%s', '%s', '%s', '%s')""".format(ip_addr, level, username,
+            ip, level, username, money, time) VALUES (
+            '{}', '{}', '{}', '{}', '{}')""".format(ip_addr, level, username,
                                                     money, mtime))
         conn.commit()
         conn.close()
@@ -141,5 +141,8 @@ class Network:
                 sleep(10)
                 self._login()
                 sleep(3)
+            except json.decoder.JSONDecodeError:
+                self.logger.error("json.decoder.JSONDecodeError\n%s\n", response)
+                exit(2)
         self.logger.error('Please check your internet.')
         exit()

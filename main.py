@@ -10,7 +10,7 @@ from lxml import html
 from network import Network
 from vhackosapi import VHackOSAPI
 
-VERSION = "0.0.0.10"  # major.minor.build.revision
+VERSION = "0.0.0.11"  # major.minor.build.revision
 APP_VER = "1.41"
 
 
