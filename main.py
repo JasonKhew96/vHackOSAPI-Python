@@ -32,18 +32,20 @@ def mainloop():
     global logger
     network = Network()
     api = VHackOSAPI(network)
-    cd_timer = 0
+    cd_timer_wd = 0
     while True:
         api.update()
         api.attack()
         api.update()
-        if time() - cd_timer > 300:  # 5 minutes
-            cd_timer = time()
+        if time() - cd_timer_wd > 600:  # 10 minutes
+            cd_timer_wd = time()
             api.withdraw()
             api.update()
-            api.collectmining()
+            api.upgradesingle()
             api.update()
-        api.upgradesingle()
+            api.finishall()
+        api.update()
+        api.collectmining()
         api.update()
         api.printuserinfo()
         mseconds = uniform(60.0, 600.0)
@@ -67,14 +69,14 @@ def main():
 
         logger.info('vHackOS-Bot: %s', VERSION)
 
-        newappver = getappver()
-        if StrictVersion(newappver) > StrictVersion(APP_VER):
-            logger.error(
-                '\nNew vHackOS-app detected: %s\nSupported version: %s',
-                newappver, APP_VER)
-            exit()
+        # newappver = getappver()
+        # if StrictVersion(newappver) > StrictVersion(APP_VER):
+            # logger.error(
+                # '\nNew vHackOS-app detected: %s\nSupported version: %s',
+                # newappver, APP_VER)
+            # exit()
 
-        logger.info('vHackOS-app: %s', newappver)
+        # logger.info('vHackOS-app: %s', newappver)
         sleep(10)
         mainloop()
     except KeyboardInterrupt:

@@ -4,3 +4,6 @@ class VhackosError(Exception):
 
 class CredentialsChangedException(VhackosError):
     '''Credentials have changed.'''
+
+class CredentialsExpiredException(VhackosError):
+    '''Android reCAPTCHA forced.'''

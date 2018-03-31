@@ -101,14 +101,17 @@ class VHackOSAPI:
         self.remotelog_obj = self.utils.call(
             'remotelog.php', action=action, target=target, log=log)
 
-    def tasks(self):
-        """Get a list of tasks including bruteforce list"""
-        self.tasks_obj = self.utils.call('tasks.php')
-
-    def removebrute(self, updateid, action='10000'):
-        """Remove bruteforce from tasks, UNUSE"""
-        self.removebrute_obj = self.utils.call(
-            'tasks.php', action=action, updateid=updateid)
+    def tasks(self, action='', updateid=''):
+        """Get a list of tasks including bruteforce list
+        
+        888 -> boost
+        500 -> finish
+        10000 -> removebrute
+        """
+        if action == '':
+            self.tasks_obj = self.utils.call('tasks.php')
+        else:
+            self.tasks_obj = self.utils.call('tasks.php', action=action, updateid=updateid)
 
     def store(self):
         """Get app list"""
@@ -142,17 +145,26 @@ class VHackOSAPI:
             self.mining_obj = self.utils.call('mining.php')
         else:
             self.mining_obj = self.utils.call('mining.php', action=action)
-
+            
     def attack(self):
         """Attack loop"""
         self.network()
         exploits_num = int(self.network_obj['exploits'])
+        self.logger.info("Refresh network, you have %i exploit(s)", exploits_num)
         sleep(uniform(0.5, 1.5))
+        
+        if exploits_num < 1:
+            self.logger.error('No exploits left...')
+            return
+        
         for targetdetail in self.network_obj['ips']:
+            if exploits_num < 1:
+                self.logger.error('No exploits left...')
+                break
             targetip = targetdetail['ip']
             brute_level = int(self.update_obj['brute'])
             target_fw = int(targetdetail['fw'])
-            if (brute_level > target_fw) and (exploits_num > 0) and (targetdetail['open'] == "0"):
+            if (brute_level > target_fw) and (targetdetail['open'] == "0"): # and (brute_level - target_fw < 200):
                 self.logger.info('Target fw %i', target_fw)
                 self.exploit(target=targetip)
                 self.logger.info('Exploit %s', targetip)
@@ -169,7 +181,6 @@ class VHackOSAPI:
                                 and self.remotebanking_obj['open'] == '0'):
                             self.startbruteforce(target=targetip)
                             if self.startbruteforce_obj['result'] == '0':
-                                exploits_num -= 1
                                 self.logger.info('Start brute force %s',
                                                  targetip)
                             else:
@@ -188,9 +199,10 @@ class VHackOSAPI:
                 elif self.exploit_obj['result'] == '3':
                     self.logger.error('Exploit failed...')
                     exploits_num = int(self.exploit_obj['exploits'])
-            elif exploits_num == 0:
-                self.logger.error('No exploits left...')
-                break
+        
+        if exploits_num > 0:
+            sleep(uniform(5.0, 10.0))
+            self.attack()
 
     def withdraw(self):
         """Withdraw loop"""
@@ -198,6 +210,10 @@ class VHackOSAPI:
         self.logger.info('Total connections: %i',
                          len(self.tasks_obj['brutes']))
         sleep(uniform(0.5, 1.5))
+        mymoney = int(self.update_obj['money'])
+        if mymoney >= 999999999:
+            self.logger.info("Maximum capacity reached: {:,}".format(mymoney))
+            return
         for targetdetail in self.tasks_obj['brutes']:
             if targetdetail['result'] == '1':
                 targetip = targetdetail['user_ip']
@@ -211,16 +227,15 @@ class VHackOSAPI:
                     if (self.remotebanking_obj['withdraw'] == '0'
                             and self.remotebanking_obj['remotemoney'] != '0'
                             and self.remotebanking_obj['aatt'] == '0'):
-                        # dafak is that? cooldown?
+                        amount = str(int(self.remotebanking_obj['remotemoney']) * 10 / 100)
                         self.wdremotebanking(
                             target=targetip,
-                            amount=self.remotebanking_obj['remotemoney'])
+                            amount=amount)
                         if self.remotebanking_obj['result'] == '0':
                             level = int(self.remote_obj['remoteLevel'])
                             money = int(self.remotebanking_obj['remotemoney'])
                             username = self.remotebanking_obj['remoteusername']
-                            self.logger.info('Withdraw %i from %s', money,
-                                             username)
+                            self.logger.info('Withdraw {:,} from {}'.format(int(amount), username))
                             self.utils.insert_db(targetip, level, username,
                                                  money)
                         sleep(uniform(0.5, 1.5))
@@ -257,6 +272,43 @@ class VHackOSAPI:
                 self.upgradestore(appcode=app['appid'])
                 self.logger.info('Upgrading %s', app['appid'])
                 sleep(uniform(0.5, 1.5))
+        self.boostupgrade()
+                
+    def boostupgrade(self):
+        self.update()
+        sleep(uniform(0.5, 1.5))
+        self.tasks()
+        sleep(uniform(0.5, 1.5))
+        boosters = int(self.tasks_obj['boosters'])
+        if boosters > 0 and int(self.tasks_obj['updateCount']) > 0:
+            updateid = self.tasks_obj['updates'][0]['id']
+            self.tasks(action="888", updateid=updateid)
+            sleep(uniform(0.5, 1.5))
+            boosted = self.tasks_obj['boosted']
+            if boosted == "1":
+                self.logger.info("Boosted")
+            else:
+                self.logger.error("Boost ERROR")
+        else:
+            self.logger.error("No more booster...")
+        
+    def finishall(self):
+        self.tasks()
+        sleep(uniform(0.5, 1.5))
+        self.logger.info('Total updates: %i', len(self.tasks_obj['updates']))
+        netcoins = int(self.tasks_obj['netcoins'])
+        finishallcosts = int(self.tasks_obj['finishallcosts'])
+        if netcoins > finishallcosts and (netcoins - finishallcosts > 6000) and int(self.tasks_obj['updateCount']) > 0:
+            updateid = self.tasks_obj['updates'][0]['id']
+            self.tasks(action="500", updateid=updateid)
+            sleep(uniform(0.5, 1.5))
+            finishall = self.tasks_obj['finishall']
+            if finishall == "1":
+                self.logger.info("Used netcoins to finish all tasks")
+            else:
+                self.logger.error("Use netcoins ERROR")
+        else:
+            self.logger.error("No more netcoins...")
 
     def collectmining(self):
         """Collect netcoins and keep it running"""
@@ -286,12 +338,14 @@ class VHackOSAPI:
         """Print player details"""
         exp = int(self.update_obj["exp"]) / int(self.update_obj["expreq"])
         exp = round((exp * 100), 2)
+        money = '{:,}'.format(int(self.update_obj['money']))
         level = "{} ({}%)".format(self.update_obj['level'], exp)
+        
         data = []
         data.append(['Exploits', self.update_obj['exploits'], 'Level', level])
         data.append([
             'Netcoins', self.update_obj['netcoins'], 'Money',
-            self.update_obj['money']
+            money
         ])
         table = SingleTable(data)
         table.title = 'User info'

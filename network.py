@@ -4,6 +4,7 @@ import logging
 import os
 import sqlite3
 from exceptions import CredentialsChangedException
+from exceptions import CredentialsExpiredException
 from time import sleep, time
 
 import requests
@@ -11,7 +12,7 @@ import requests
 import utils
 from config import Config
 
-ENDPOINT = "https://api.vhack.cc/mobile/13/"
+ENDPOINT = "https://api.vhack.cc/mobile/14/"
 
 
 class Network:
@@ -132,8 +133,11 @@ class Network:
                 json_obj = response.json()
                 if json_obj['result'] == '36':
                     raise CredentialsChangedException
+                if "expired" in json_obj:
+                    if json_obj['expired'] == "1":
+                        raise CredentialsExpiredException
                 return json_obj
-            except requests.exceptions.Timeout:
+            except TimeoutError:
                 self.logger.error('Retrying %i timeout...', i)
                 sleep(3)
             except CredentialsChangedException:
@@ -141,6 +145,9 @@ class Network:
                 sleep(10)
                 self._login()
                 sleep(3)
+            except CredentialsExpiredException:
+                self.logger.warning("reCAPTCHAS forced...")
+                exit(3)
             except json.decoder.JSONDecodeError:
                 self.logger.error("json.decoder.JSONDecodeError\n%s\n", response)
                 exit(2)
