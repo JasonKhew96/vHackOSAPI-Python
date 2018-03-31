@@ -227,15 +227,15 @@ class VHackOSAPI:
                     if (self.remotebanking_obj['withdraw'] == '0'
                             and self.remotebanking_obj['remotemoney'] != '0'
                             and self.remotebanking_obj['aatt'] == '0'):
-                        amount = str(int(self.remotebanking_obj['remotemoney']) * 10 / 100)
+                        amount = round(int(self.remotebanking_obj['remotemoney']) * 10 / 100)
                         self.wdremotebanking(
                             target=targetip,
-                            amount=amount)
+                            amount=str(amount))
                         if self.remotebanking_obj['result'] == '0':
                             level = int(self.remote_obj['remoteLevel'])
                             money = int(self.remotebanking_obj['remotemoney'])
                             username = self.remotebanking_obj['remoteusername']
-                            self.logger.info('Withdraw {:,} from {}'.format(int(amount), username))
+                            self.logger.info('Withdraw {:,} from {}'.format(amount, username))
                             self.utils.insert_db(targetip, level, username,
                                                  money)
                         sleep(uniform(0.5, 1.5))
