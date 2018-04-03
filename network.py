@@ -12,7 +12,7 @@ import requests
 import utils
 from config import Config
 
-ENDPOINT = "https://api.vhack.cc/mobile/14/"
+ENDPOINT = "https://api.vhack.cc/mobile/15/"
 
 
 class Network:
