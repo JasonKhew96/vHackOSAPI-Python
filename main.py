@@ -10,7 +10,7 @@ from lxml import html
 from network import Network
 from vhackosapi import VHackOSAPI
 
-VERSION = "0.0.0.14"  # major.minor.build.revision
+VERSION = "0.0.0.15"  # major.minor.build.revision
 APP_VER = "1.43"
 
 
@@ -36,7 +36,7 @@ def mainloop():
     while True:
         api.update()
         api.attack()
-        if time() - cd_timer_wd > 600:  # 10 minutes
+        if time() - cd_timer_wd > 300:  # 5 minutes
             cd_timer_wd = time()
             api.update()
             api.withdraw()

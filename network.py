@@ -137,8 +137,8 @@ class Network:
                     if json_obj['expired'] == "1":
                         raise CredentialsExpiredException
                 return json_obj
-            except TimeoutError:
-                self.logger.error('Retrying %i timeout...', i)
+            except TimeoutError as e:
+                self.logger.error('Retrying %i "%s"...', i, e)
                 sleep(3)
             except CredentialsChangedException:
                 self.logger.error('Credentials changed, re-login...')

@@ -386,7 +386,7 @@ class VHackOSAPI:
                 dailyid = str(self.missions_obj['daily'].index(daily))
                 self.missions(action="200", dailyid=dailyid)
                 if self.missions_obj['claimed'] == "1":
-                    self.logger.info("Claimed missions %i: %i %s, %i EXP",
+                    self.logger.info("Claimed missions %s: %s %s, %s EXP",
                                      dailyid, daily['rewAmount'],
                                      daily['rewType'], daily['exp'])
                 else:
