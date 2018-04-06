@@ -10,7 +10,7 @@ from lxml import html
 from network import Network
 from vhackosapi import VHackOSAPI
 
-VERSION = "0.0.0.15"  # major.minor.build.revision
+VERSION = "0.0.0.16"  # major.minor.build.revision
 APP_VER = "1.43"
 
 
@@ -82,6 +82,7 @@ def main():
             # exit()
 
         # logger.info('vHackOS-app: %s', newappver)
+        logger.info('vHackOS-app: %s', APP_VER)
         sleep(10)
         mainloop()
     except KeyboardInterrupt:

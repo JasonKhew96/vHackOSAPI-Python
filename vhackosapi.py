@@ -203,7 +203,8 @@ class VHackOSAPI:
             brute_level = int(self.update_obj['brute'])
             target_fw = int(targetdetail['fw'])
             if (brute_level >
-                    target_fw) and (targetdetail['open'] == "0"):  # and (brute_level - target_fw < 200):
+                    target_fw) and (targetdetail['open'] == "0"
+                                    ):  # and (brute_level - target_fw < 200):
                 self.logger.info('Target fw %i', target_fw)
                 self.exploit(target=targetip)
                 self.logger.info('Exploit %s', targetip)
@@ -245,6 +246,7 @@ class VHackOSAPI:
 
     def withdraw(self):
         """Withdraw loop"""
+        break_flag = False
         self.tasks()
         self.logger.info('Total connections: %i',
                          len(self.tasks_obj['brutes']))
@@ -263,28 +265,33 @@ class VHackOSAPI:
                     self.remotebanking(target=targetip)
                     self.logger.info('Remote banking %s', targetip)
                     sleep(uniform(0.5, 1.5))
+                    remotemoney = int(self.remotebanking_obj['remotemoney'])
                     if (self.remotebanking_obj['withdraw'] == '0'
-                            and self.remotebanking_obj['remotemoney'] != '0'
+                            and remotemoney >= 0
                             and self.remotebanking_obj['aatt'] == '0'):
-                        amount = round(
-                            int(self.remotebanking_obj['remotemoney']) * 10 /
-                            100)
+                        amount = round(remotemoney * 10 / 100)
                         self.wdremotebanking(
                             target=targetip, amount=str(amount))
-                        if self.remotebanking_obj['result'] == '0':
+                        if (self.wdremotebanking_obj['result'] == '0'
+                                and remotemoney !=
+                                int(self.wdremotebanking_obj['remotemoney'])):
                             level = int(self.remote_obj['remoteLevel'])
-                            money = int(self.remotebanking_obj['remotemoney'])
                             username = self.remotebanking_obj['remoteusername']
                             self.logger.info('Withdraw {:,} from {}'.format(
                                 amount, username))
                             self.utils.insert_db(targetip, level, username,
-                                                 money)
+                                                 remotemoney)
+                        else:
+                            self.logger.error("Maximum capacity reached")
+                            break_flag = True
                         sleep(uniform(0.5, 1.5))
                     self.remotelog(target=targetip)
                     sleep(uniform(0.5, 1.5))
                     self.clearremotelog(target=targetip)
                     self.logger.info('Cleared remote log %s', targetip)
                     sleep(uniform(0.5, 1.5))
+                    if break_flag:
+                        return
                 # else:
                 #     self.logger.error(self.remote_obj['result'])
 
@@ -316,6 +323,7 @@ class VHackOSAPI:
         self.boostupgrade()
 
     def boostupgrade(self):
+        """Boost updates."""
         self.update()
         sleep(uniform(0.5, 1.5))
         self.tasks()
@@ -334,6 +342,7 @@ class VHackOSAPI:
             self.logger.error("No more booster...")
 
     def finishall(self):
+        """Use netcoins to finish all update."""
         self.tasks()
         sleep(uniform(0.5, 1.5))
         self.logger.info('Total updates: %i', len(self.tasks_obj['updates']))
