@@ -12,7 +12,7 @@ import requests
 import utils
 from config import Config
 
-ENDPOINT = "https://api.vhack.cc/mobile/15/"
+ENDPOINT = "https://api.vhack.cc/mobile/16/"
 
 
 class Network:
@@ -137,7 +137,7 @@ class Network:
                     if json_obj['expired'] == "1":
                         raise CredentialsExpiredException
                 return json_obj
-            except TimeoutError as e:
+            except requests.Timeout as e:
                 self.logger.error('Retrying %i "%s"...', i, e)
                 sleep(3)
             except CredentialsChangedException:

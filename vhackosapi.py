@@ -154,17 +154,21 @@ class VHackOSAPI:
 
         :param action: A string, action code
         :param dailyid: A string, daily id
-
-        action -> 200 -> collect
+        
+        action -> 100 -> collect day
+        action -> 200 -> collect daily
         dailyid -> 0, 1, 2, 3
 
         finished -> 1 -> can collect
         """
         if action == '':
             self.missions_obj = self.utils.call('missions.php')
-        else:
+        elif action == "200":
             self.missions_obj = self.utils.call(
                 'missions.php', action=action, dailyid=dailyid)
+        elif action == "100":
+            self.missions_obj = self.utils.call(
+                'missions.php', action=action)
 
     def server(self, action='', node_type='', node_number=''):
         """Get server details or make server action.
@@ -251,10 +255,10 @@ class VHackOSAPI:
         self.logger.info('Total connections: %i',
                          len(self.tasks_obj['brutes']))
         sleep(uniform(0.5, 1.5))
-        mymoney = int(self.update_obj['money'])
-        if mymoney >= 999999999:
-            self.logger.info("Maximum capacity reached: {:,}".format(mymoney))
-            return
+        # mymoney = int(self.update_obj['money'])
+        # if mymoney >= 999999999:
+            # self.logger.info("Maximum capacity reached: {:,}".format(mymoney))
+            # return
         for targetdetail in self.tasks_obj['brutes']:
             if targetdetail['result'] == '1':
                 targetip = targetdetail['user_ip']
@@ -269,7 +273,7 @@ class VHackOSAPI:
                     if (self.remotebanking_obj['withdraw'] == '0'
                             and remotemoney >= 0
                             and self.remotebanking_obj['aatt'] == '0'):
-                        amount = round(remotemoney * 10 / 100)
+                        amount = round(remotemoney * 1 / 100)
                         self.wdremotebanking(
                             target=targetip, amount=str(amount))
                         if (self.wdremotebanking_obj['result'] == '0'
@@ -281,9 +285,11 @@ class VHackOSAPI:
                                 amount, username))
                             self.utils.insert_db(targetip, level, username,
                                                  remotemoney)
-                        else:
+                        elif (remotemoney == int(self.wdremotebanking_obj['remotemoney'])):
                             self.logger.error("Maximum capacity reached")
                             break_flag = True
+                        else:
+                            self.logger.error("Unknown Error")
                         sleep(uniform(0.5, 1.5))
                     self.remotelog(target=targetip)
                     sleep(uniform(0.5, 1.5))
@@ -401,6 +407,13 @@ class VHackOSAPI:
                 else:
                     self.logger.error("Claim missions error...")
                 sleep(uniform(0.5, 1.5))
+        if self.missions_obj['claimNextDay'] == "0":
+            self.missions(action="100")
+            if self.missions_obj['claimed'] == "1":
+                self.logger.info("Claimed missions")
+            else:
+                self.logger.error("Claim missions error...")
+            sleep(uniform(0.5, 1.5))
         self.logger.info("Missions checked")
 
     def server_job(self):
