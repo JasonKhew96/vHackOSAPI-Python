@@ -139,10 +139,15 @@ class VHackOSAPI:
 
         action -> 200 -> collect
         action -> 100 -> start
+        action -> 8888 -> addGPU
 
         running -> 0 -> idle
         running -> 1 -> running
         running -> 2 -> mined
+        
+        upgradable -> 1
+        
+        newGPUCosts
         """
         if action == '':
             self.mining_obj = self.utils.call('mining.php')
@@ -285,9 +290,9 @@ class VHackOSAPI:
                                 amount, username))
                             self.utils.insert_db(targetip, level, username,
                                                  remotemoney)
-                        elif (remotemoney == int(self.wdremotebanking_obj['remotemoney'])):
-                            self.logger.error("Maximum capacity reached")
-                            break_flag = True
+                        # elif (remotemoney == int(self.wdremotebanking_obj['remotemoney'])):
+                            # self.logger.error("Maximum capacity reached")
+                            # break_flag = True
                         else:
                             self.logger.error("Unknown Error")
                         sleep(uniform(0.5, 1.5))

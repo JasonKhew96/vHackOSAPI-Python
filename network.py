@@ -32,7 +32,7 @@ class Network:
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip'
         }
-        self.request.timeout = 10
+        # self.request.timeout = 10
         if self.config.access_token == '' or self.config.uid == '':
             self._login()
 
